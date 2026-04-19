@@ -1,14 +1,21 @@
 # Quality metrics
 
-#### There are two kinds of quality metrics for clustering:
+#### Two kinds of quality metrics for clustering:
 
-* Supervised
-  * Based on ground truth of object labels
+<br>
+
+* **Supervised** (external validation)
+  * Require ground truth labels (rare in practice!)
+  * Useful for benchmarking algorithms on labeled datasets
   * Invariant to cluster naming
-* Unsupervised
-  * Based on intuition about “good” clusters:
-    * Objects from the same cluster are similar / close to each other
-    * Objects from different clusters are dissimilar / distant from each other
+
+<br>
+
+* **Unsupervised** (internal validation)
+  * No ground truth needed
+  * Based on intuition about "good" clusters:
+    * Objects within a cluster should be **close** to each other
+    * Objects from different clusters should be **far** from each other
 
 ---
 
@@ -26,39 +33,35 @@ where:
 
 # Adjusted Rand Index
 
-#### Adjusted Rand Index ($ARI$) is a modification of $RI$:
-$$ARI = \frac{RI - RI_{\mathrm{expected}}}{RI_{\max} - RI_{\mathrm{expected}}}$$
+#### Adjusted Rand Index ($ARI$) corrects for chance:
+$$ARI = \frac{RI - \mathbb{E}[RI]}{RI_{\max} - \mathbb{E}[RI]}$$
 <br>
 
-* $ARI$ has values:
-  * close to $0$ for random labeling independently of the number
-of clusters and samples
-  * exactly $1$ when the clustering is ideal
+* $ARI \approx 0$ for **random** labeling (regardless of $K$ and $N$)
+* $ARI = 1$ for **perfect** clustering
+* $ARI < 0$ means worse than random
+* **Most commonly used** supervised metric in practice
 
 ---
-
-# Metrics for classification
-
-* $\mathrm{Precision} = \dfrac{TP}{TP + FN}$
-
-* $\mathrm{Recall} = \dfrac{TP}{TP + FP}$
-
-* F1-score, $\mathrm{F1} = \dfrac{2 \times \mathrm{Precision} \times \mathrm{Recall}}{\mathrm{Precision} + \mathrm{Recall}}$
-
-* Fowlkes-Mallows Index, $FMI = \dfrac{TP}{\sqrt{(TP + FP)(TP + FN)}}$
-
-* etc.
-
+zoom: 0.9
 ---
 
-# Silhouette
+# Silhouette score
 
-#### Silhouette is unsupervised quality metric defined as:
-$$\mathrm{Silhouette} = \frac{1}{N}\sum\limits_{i=1}^N \frac{d_i - s_i}{\max\{d_i, s_i\}}$$
-where:
-* $s_i$ - mean distance between the $i$-th object and all objects in the same cluster
-* $d_i$ - mean distance between the $i$-th object and all objects in the nearest
-cluster
+#### Silhouette is the most popular **unsupervised** quality metric
+
+For each object $i$:
+* $s_i$ — mean distance to all objects in the **same** cluster ("cohesion")
+* $d_i$ — mean distance to all objects in the **nearest other** cluster ("separation")
+
+$$\mathrm{sil}(i) = \frac{d_i - s_i}{\max\{d_i, s_i\}} \in [-1, 1]$$
+
+#### Interpretation:
+* $\approx +1$: object is **well-matched** to its cluster, far from neighbors
+* $\approx 0$: object is **on the border** between two clusters
+* $\approx -1$: object is likely **misclassified** (closer to another cluster)
+
+Overall: $\quad \mathrm{Silhouette} = \frac{1}{N}\sum\limits_{i=1}^N \mathrm{sil}(i)$
 
 ---
 
@@ -81,10 +84,16 @@ cluster
 
 ---
 
-# K-Means Limitations
+# K-Means limitations
 
-* K-Means looks for cluster centers
-  * All objects are separated between these centers based on the closest distances
-* In result, objects of a cluster concentrated around its center
-* Real clusters may have more difficult forms, like circles or moons
-* They are divided by K-Means between several centers
+<br>
+
+* K-Means finds cluster centers, then assigns points to the **nearest** center
+* This creates **Voronoi partitions** — always convex regions!
+* Real clusters may have **complex shapes**: circles, moons, elongated regions
+
+<br>
+
+#### What can we do?
+* **Hierarchical clustering** — merge nearby small clusters into larger ones
+* **Density-based methods** (DBSCAN) — clusters are dense regions of any shape

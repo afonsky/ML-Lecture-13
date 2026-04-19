@@ -23,6 +23,8 @@
 
 # Agglomerative clustering
 
+<br>
+
 <figure>
   <img src="/agglomerative_clustering.png" style="width: 900px !important;">
   <figcaption style="color:#b3b3b3ff; font-size: 11px; float: right;">Image source: <a href="https://www.brandidea.com/hierarchicalclustering.html">https://www.brandidea.com/hierarchicalclustering.html</a>
@@ -39,9 +41,10 @@
 <div>
 <br>
 
-* Agglomerative clustering algorithms build a dendrogram
-* Dendrogram shows hierarchy of clusters in a data sample
-* It contains information about objects inside each cluster and distances between these clusters
+* A **tree diagram** showing the hierarchy of merges
+* **Height** of each merge = distance between merged clusters
+* **Cutting** the dendrogram at a chosen height → specific number of clusters
+* Large **gaps** in merge heights suggest natural cluster boundaries
 </div>
 <div>
   <figure>
@@ -56,42 +59,36 @@
 
 <div class="bg-orange-100">
 
-* ### Algorithm
-   1. Initialize distance matrix $M \in \mathbb{R}^{N \times N}$ between singleton clusters $\{x_1\}, ..., \{x_N\}$
-   2. Repeat until $1$ cluster is left:
-      1. Pick closest pair of clusters $i$ and $j$
-      2. Merge clusters $i$ and $j$
-      3. Delete rows / columns from $M$ and add new column for merged cluster
-      4. Recalculate distances between clusters
-   3. Return hierarchical clustering of objects
+### Algorithm (bottom-up)
+   1. Start: each object is its own cluster → $N$ clusters
+   2. Compute distance matrix between all pairs of clusters
+   3. Repeat until 1 cluster remains:
+      1. Find the **two closest** clusters
+      2. **Merge** them into one cluster
+      3. Update the distance matrix
+   4. Record the merge history → **dendrogram**
 </div>
 
----
-
-# Linkage
-
-#### In agglomerative clustering, **linkage** specifies how the distance between two clusters is calculated
 <br>
 
-* Nearest-neighbor (single link):
-$$\rho(A, B) = \min\limits_{a \in A, b \in B} \rho(a, b)$$
-
-* Furthest-neighbor (complete link):
-$$\rho(A, B) = \max\limits_{a \in A, b \in B} \rho(a, b)$$
-
-where $A = \{x_{i_1}, x_{i_2}, ...\}$ and $B = \{x_{j_1}, x_{j_2}, ...\}$ are two clusters
+* No need to specify $K$ in advance!
+* Choose $K$ later by "cutting" the dendrogram
 
 ---
+zoom: 0.9
+---
 
-# Linkage
+# Linkage: distance between clusters
 
-* Average (group average link):
-$$\rho(A, B) = \frac{1}{N_A N_B} \sum\limits_{a \in A, b \in B} \rho(a, b)$$
+#### **Linkage** defines how we compute distance between two clusters $A$ and $B$:
+<br>
 
-* Closest centroid (centroid link):
-$$\rho(A, B) = \rho(\mu_A, \mu_B)$$
-
-where $\mu_A$ and $\mu_B$ are cluster centers
+| Linkage | Formula | Behavior |
+|---------|---------|----------|
+| **Single** (min) | $\min\limits_{a \in A, b \in B} \rho(a, b)$ | Can find elongated clusters; sensitive to noise |
+| **Complete** (max) | $\max\limits_{a \in A, b \in B} \rho(a, b)$ | Prefers compact, spherical clusters |
+| **Average** | $\frac{1}{N_A N_B} \sum\limits_{a,b} \rho(a, b)$ | Compromise between single and complete |
+| [**Ward**](https://en.wikipedia.org/wiki/Ward%27s_method) | Minimizes total within-cluster variance | Similar to K-Means; most commonly used |
 
 ---
 
@@ -107,10 +104,37 @@ where $\mu_A$ and $\mu_B$ are cluster centers
 
 # Two approaches to hierarchical clustering
 
+<br>
+
 <div>
   <figure>
     <img src="/agglomerative_vs_divisive.png" style="width: 800px !important;">
       <figcaption style="color:#b3b3b3ff; font-size: 11px; float: right;">Image source: <a href="https://education.yandex.ru/handbook/ml/article/klasterizaciya/">https://education.yandex.ru/handbook/ml/article/klasterizaciya/</a>
     </figcaption>
   </figure>
+</div>
+
+---
+
+# Hierarchical clustering: pros and cons
+
+<br>
+
+<div class="grid grid-cols-[1fr_1fr] gap-10">
+<div>
+
+### Advantages
+* **No need** to specify $K$ upfront
+* Dendrogram gives **rich information** about data structure
+* Can find **non-spherical** clusters (with single linkage)
+* **Deterministic** — no random initialization
+</div>
+<div>
+
+### Disadvantages
+* **Slow**: $O(N^2)$ memory, $O(N^3)$ time
+* Not practical for **large datasets** (> 10K points)
+* Merges are **irreversible** — early mistakes propagate
+* Sensitive to **noise** (especially single linkage)
+</div>
 </div>

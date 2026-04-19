@@ -24,41 +24,37 @@ form the most compact clusters
 
 ---
 
-# Notation
+# K-Means: The Big Idea
 
-* Consider a sample with $N$ objects $\{x_n\}_{n=1}^N$
-* We will search for $K$ clusters with centers $\{\mu_1,\mu_2, ..., \mu_K\}$
-* Criterion to find the best centers is minimum of **within-cluster distance**:
-$$Q = \sum\limits_{n=1}^N \min\limits_k \rho (x_n, \mu_k) \rightarrow \min\limits_{\mu_1, ..., \mu_K}$$
-* Each object $x_n$ is assigned to a cluster $z_n \in \{1, 2, ..., K\}$ as:
-$$z_n = \argmin\limits_k \rho (x_n, \mu_k)$$
+<br>
 
----
+#### Two simple alternating steps:
 
-# General K-Means / K-Medians algorithm
+<div class="grid grid-cols-[1fr_1fr] gap-10">
+<div>
 
-<div class="bg-orange-100">
+### Step 1: Assign
+* For each data point, find the **nearest center**
+* Assign the point to that cluster
+</div>
+<div>
 
-### Algorithm
-   1. Initialize $\mu_1, ..., \mu_K$ from random training objects
-   2. While not converged:
-      1. For $n = 1, 2, ..., N$:<br>
-         $z_n = \argmin\limits_k \rho (x_n, \mu_k)$ $~~~~~~~~~~~~~~~~~\leftarrow$ assign each object to the nearest center
-      2. For $k = 1, 2, ..., K$:<br>
-         $z_n = \argmin\limits_\mu \sum\limits_{n: z_n = k} \rho (x_n, \mu)$ $~~~~~~~~~\leftarrow$ update the centers
-   3. Return $z_1, ..., z_N$
+### Step 2: Update
+* For each cluster, compute the **mean** of all assigned points
+* Move the center to this mean
+</div>
 </div>
 
+<br>
+
+> Repeat until cluster assignments **stop changing**
+
+<br>
+
+*This is an instance of the Expectation-Maximization (EM) algorithm — Andrew Ng, CS229*
+
 ---
-
-# Algorithm variations
-
-* Distance $\rho (x_n, \mu_k)$ can be defined in different ways:
-   * If $\rho (x_n, \mu_k) = \lVert x_n - \mu_k \rVert_2^2$
-      * we get **K-Means algorithm**
-   * If $\rho (x_n, \mu_k) = \lVert x_n - \mu_k \rVert_1$
-      * we get **K-Medians algorithm**
-
+zoom: 0.9
 ---
 
 # K-Means algorithm
@@ -66,15 +62,48 @@ $$z_n = \argmin\limits_k \rho (x_n, \mu_k)$$
 <div class="bg-orange-100">
 
 ### Algorithm
-   1. Initialize $\mu_j, j = 1, 2, ..., K$.
-   2. While not converged:
-      1. For $i = 1, 2, ..., N$:<br>
-         find cluster number of $x_i$:<br>
-         $z_i = \argmin\limits_{j \in \{1,2, ..., K\}} \lVert x_n - \mu_k \rVert_2^2$
-      2. For $j = 1, 2, ..., K$:<br>
-         $\mu_j = \frac{\sum\limits_{n=1}^N \mathbb{I} [z_n = j] x_i}{\sum\limits_{n=1}^N \mathbb{I} [z_n = j]}$
-   3. Return $z_i, \mu_j$
+   1. Choose the number of clusters $K$
+   2. Randomly initialize $K$ cluster centers $\mu_1, ..., \mu_K$ from training data
+   3. Repeat until convergence:
+      * **Assign** each object to the nearest center:<br>
+         $z_i = \argmin\limits_{k \in \{1, ..., K\}} \lVert x_i - \mu_k \rVert^2$
+      * **Update** each center as the mean of its cluster:<br>
+         $\mu_k = \frac{1}{|C_k|} \sum\limits_{x_i \in C_k} x_i$
+   4. Return cluster assignments $z_1, ..., z_N$
 </div>
+
+<br>
+
+* The objective (within-cluster sum of squares, **WCSS**) **decreases** at every step
+* K-Means is **guaranteed to converge**, but may find a **local** minimum
+
+---
+
+# Feature scaling matters!
+
+<br>
+
+<div class="grid grid-cols-[1fr_1fr] gap-10">
+<div>
+
+### Without scaling
+* Feature with **large range dominates** the distance
+* Ex: income `0-100K` vs age `0-80`
+* Clusters are determined mainly by income
+</div>
+<div>
+
+### With scaling
+* All features contribute **equally** to distance
+* **Standardize**: $x' = \frac{x - \bar{x}}{s}$
+* Or **normalize** to `[0, 1]` range
+</div>
+</div>
+
+<br>
+
+> **Always scale your features before running K-Means!**<br>
+> This applies to all distance-based methods (kNN, SVM with RBF, etc.)
 
 ---
 layout: section
@@ -93,28 +122,60 @@ url: https://cartography-playground.gitlab.io/playgrounds/clustering-comparison/
 
 ---
 
+# The initialization problem
+
+<br>
+
+<div class="grid grid-cols-[3fr_4fr] gap-10">
+<div>
+
+### Random initialization
+* Different starting centers → **different results**
+* Can get stuck in **bad local minima**
+* Standard practice: run K-Means **multiple times** with different random seeds, pick result with lowest WCSS
+</div>
+<div>
+
+### K-Means++ ([Arthur & Vassilvitskii, 2007](https://dl.acm.org/doi/10.5555/1283383.1283494))
+* **Smart initialization** that spreads centers apart
+* Algorithm:
+  1. Pick first center **randomly** from data
+  2. For each remaining center: pick a point with probability **proportional to squared distance** from nearest existing center
+  3. Run standard K-Means from these seeds
+</div>
+</div>
+
+<br>
+
+> K-Means++ is the **default** in `scikit-learn` and virtually always preferred
+
+---
+zoom: 0.98
+---
+
 # Properties of K-Means
 
-* Initialization:
-   * Centers $\{\mu_k\}_{k=1}^K$ are usually initialized randomly from training objects
-   * Number of clusters (and centers) $K$ is fixed. They act as a hyperparameters.
-* Convergence criteria:
-   * Iterations limit is reached
-   * Centers stop changing significantly
-   * Cluster assignments $\{z_n\}_{n=1}^N$ stop changing
-* Solution:
-   * Depends on starting positions of centers
-   * Sensitive to outliers, may create single-object clusters
-   * It is recommended to run the algorithm with several different initializations and select solution with the minimal within-cluster distance $Q$
+* **Hyperparameters:**
+   * Number of clusters $K$ must be specified in advance
+   * Number of random restarts
+* **Convergence:**
+   * Guaranteed to converge (WCSS decreases monotonically)
+   * Typically converges in **few iterations** — fast!
+   * Time complexity: $O(N \cdot K \cdot d \cdot T)$ per restart
+* **Limitations:**
+   * Finds only **convex**, roughly **spherical** clusters
+   * Sensitive to **outliers** — they pull centroids away
+   * Result depends on **initialization** (use K-Means++)
+   * Must choose $K$ in advance
 
 
 ---
 
-# Elbow method
+# Choosing K: Elbow method
 
 * How to estimate optimal number of clusters $K$?
-* Consider within-cluster distances $Q^{(K)}$ for all possible $K$:
-$$Q^{(K)} = \sum\limits_{n=1}^N \lVert x_n - \mu_{z_n} \rVert_2^2 \rightarrow \min\limits_{z_1, ..., z_N, \mu_1, ..., \mu_K}$$
+* Plot within-cluster sum of squares (WCSS) against $K$
+* Look for the **"elbow"** — point where adding more clusters gives **diminishing returns**
 
 <div>
 <figure>
@@ -132,9 +193,9 @@ $$Q^{(K)} = \sum\limits_{n=1}^N \lVert x_n - \mu_{z_n} \rVert_2^2 \rightarrow \m
 <div>
 
 * Within-cluster distances $Q^{(K)}$ decreases with increasing $K$
-* The dependence has elbow at the
-optimal number of clusters ($K = 5$)
-* Let’s try to formalize it
+* At some point, the **rate of decrease** slows down sharply
+* This "elbow" suggests the optimal $K$
+* Here: $K = 5$ is the elbow
 </div>
 <div>
   <figure>
@@ -145,16 +206,17 @@ optimal number of clusters ($K = 5$)
 
 ---
 
-# Elbow method
+# Elbow method: formalization
 
 <br>
 <br>
 <div class="grid grid-cols-[4fr_5fr] gap-10">
 <div>
 
-* Let's define relative change of within-cluster distance:
+* Relative change of within-cluster distance:
 $$D(K) = \frac{\lvert Q^{(K+1)} - Q^{(K)} \rvert}{\lvert Q^{(K)} - Q^{(K-1)} \rvert}$$
-   * This function takes small value for the optimal number of clusters
+   * Small $D(K)$ → adding cluster $K+1$ doesn't help much
+   * **Minimum of $D(K)$** suggests the optimal $K$
 
 </div>
 <div>

@@ -1,26 +1,52 @@
 # Overview of clustering methods
 
-<div>
+<center>
   <figure>
     <img src="/clustering_overview.png" style="width: 800px !important;">
   </figure>
-</div>
+</center>
 
+---
+zoom: 0.8
+---
+
+# Which algorithm to choose?
+
+| Criterion | K-Means | Hierarchical | DBSCAN |
+|-----------|---------|-------------|--------|
+| **Cluster shape** | Spherical | Depends on linkage | Arbitrary |
+| **# clusters** | Must specify $K$ | Cut dendrogram | Automatic |
+| **Outliers** | Sensitive | Depends on linkage | Robust (noise) |
+| **Scalability** | Large datasets | Small datasets | Medium datasets |
+| **Speed** | $O(NKdT)$ | $O(N^2)$ to $O(N^3)$ | $O(N \log N)$ |
+| **Deterministic?** | No (random init) | Yes | Mostly yes |
+
+<br>
+
+#### Quick decision guide:
+* **Start with K-Means** — fast, simple, works well for many problems
+* **Use hierarchical** — when you need to explore cluster structure (small data)
+* **Use DBSCAN** — when clusters have complex shapes or outliers matter
+
+---
+zoom: 0.95
 ---
 
 # Summary of clustering methods
 
-* K-Means limitations
-	* Find clusters that concentrated only around one center
-	* Can not find clusters with complex forms
+* **K-Means**
+	* Simple, fast, scalable — the go-to starting point
+	* Finds convex clusters around centroids
+	* Use **K-Means++** initialization, **elbow method** for choosing $K$
 
-* Hierarchical clustering
-	* Agglomerative clustering
-	* Dendrogram contains information about clusters structure
+* **Hierarchical clustering**
+	* Builds a **dendrogram** — rich information about cluster structure
+	* Agglomerative (bottom-up) is most common; choice of **linkage** matters
 
-* DBSCAN
-	* Density-Based Spatial Clustering of Applications with Noise
-	* Able to find complex clusters and outliers
+* **DBSCAN**
+	* Density-based: finds clusters of **arbitrary shape**
+	* Automatically detects **outliers** as noise
+	* Use **k-distance graph** to choose $\epsilon$
 
 ---
 zoom: 0.95
@@ -28,13 +54,14 @@ zoom: 0.95
 
 # Ex. Dimension reduction with PCA
 
-<div>
+<center>
   <figure>
     <img src="/ISLP_figure_12.2.png" style="width: 750px !important;">
-  <figcaption style="color:#b3b3b3ff; font-size: 11px; position: relative; top: 10px; left: 530px;">Based on <a href="https://hastie.su.domains/ISLP/ISLP_website.pdf#page=515">ISLP Fig. 12.2</a>
+  <figcaption style="color:#b3b3b3ff; font-size: 11px; position: relative;">Based on <a href="https://hastie.su.domains/ISLP/ISLP_website.pdf#page=515">ISLP Fig. 12.2</a>
   </figcaption>
   </figure>
-</div>
+</center>
+
 <br>
 <br>
 
@@ -105,6 +132,8 @@ $\small \mathrm{Original~photo_1} = 1.35 \cdot \mathrm{Eigenface_1} - 2.20 \cdot
 
 # Recap of Principal Component Analysis (PCA)
 
+<br>
+
 * Each PC $Z_k$ is a linear combination of **all** original features $\{X_{j, n \times 1}\}$<br>
 $\small Z_k = \begin{bmatrix} Z_{1k} \\ \vdots \\ Z_{nk} \end{bmatrix} = X \phi_k = \sum\limits_{j=1}^p \phi_{jk}X_j~~~$ given $\lVert \phi_k \rVert_2^2 = \sum\limits_{j=1}^p \phi_{jk}^2 = 1$, $\forall k = 1:p$<br>
 where $\phi_{k, p \times p}$ is a **loading vector** for $k$th PC; $z_{ik}$ is the $i$th **score of the** $k$**th PC**
@@ -135,13 +164,13 @@ $\small Z = \color{grey}\underbrace{\color{#006}{[Z_1, ..., Z_p]}}_{\mathrm{PCs}
 
 # Scree plot: Proportion of Variance Explained (PVE)
 
-<div>
+<center>
   <figure>
     <img src="/ISLP_figure_12.3.png" style="width: 450px !important;">
   <figcaption style="color:#b3b3b3ff; font-size: 11px; position: relative; top: 10px; left: 30px;">Image source: <a href="https://hastie.su.domains/ISLP/ISLP_website.pdf#page=518">ISLP Fig. 12.3</a>
   </figcaption>
   </figure>
-</div>
+</center>
 <br>
 
 * Since all $\mathbb{V}Z_j$ are **additive** ($Z_j$'s are uncorrelated)
@@ -150,6 +179,8 @@ $\small Z = \color{grey}\underbrace{\color{#006}{[Z_1, ..., Z_p]}}_{\mathrm{PCs}
 * Once plotted, we look for the "elbow" shape after which we can discard other PCs
 	* Alternatively, we can threshold PCs after, say, 95% of cumulative variance is explained
 
+---
+zoom: 0.95
 ---
 
 # PCA training
@@ -176,3 +207,11 @@ $\argmax\limits_{\phi_1^\ast} \big\{\lVert z_{i2} \rVert_2 ~~|~~ \lVert \phi_2^\
 </figure>
 </div>
 </div>
+
+---
+layout: section
+---
+
+# PCA demo
+
+[https://projector.tensorflow.org/](https://projector.tensorflow.org/)

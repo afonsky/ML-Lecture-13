@@ -20,7 +20,7 @@
 
 ---
 
-# DBSCAN idea \#1
+# DBSCAN parameters
 
 <br>
 <div class="grid grid-cols-[5fr_4fr] gap-10">
@@ -29,8 +29,14 @@
 <br>
 
 #### DBSCAN has two parameters:
-* $\epsilon$ – radius of neighborhood of each object
-* **MinPts** – minimal number of objects inside the neighborhood
+* $\epsilon$ — radius of the neighborhood
+* **MinPts** — minimum number of points required to form a dense region
+
+<br>
+
+#### Rules of thumb:
+* $\mathrm{MinPts} \geq d + 1$ where $d$ is number of features
+* Common default: $\mathrm{MinPts} = 5$
 </div>
 <div>
   <figure>
@@ -41,7 +47,7 @@
 
 ---
 
-# DBSCAN idea \#2
+# DBSCAN: three types of points
 
 <br>
 <div class="grid grid-cols-[5fr_4fr] gap-10">
@@ -64,58 +70,39 @@
 
 ---
 
-# DBSCAN (short) algorithm
+# DBSCAN algorithm
+
+<br>
+<br>
+<br>
 
 <div class="bg-orange-100">
 
-* ### Algorithm
+### Algorithm
    1. Label all objects as <span style="color:#6E1B1A">**core**</span>, <span style="color:#9F8544">**border**</span>, or <span style="color:#07227C">**noise**</span> objects
-   2. Eliminate noise objects
-   3. Put an edge between all <span style="color:#6E1B1A">**core**</span> objects that are within $\epsilon$ of each other
-   4. Make each group of connected <span style="color:#6E1B1A">**core**</span> objects into a separate cluster
-   5. Assign each <span style="color:#9F8544">**border**</span> object to one of the clusters of its associated <span style="color:#6E1B1A">**core**</span> objects
+   2. Remove <span style="color:#07227C">**noise**</span> objects
+   3. Connect all <span style="color:#6E1B1A">**core**</span> objects within $\epsilon$ of each other
+   4. Each connected component of <span style="color:#6E1B1A">**core**</span> objects forms a **cluster**
+   5. Assign each <span style="color:#9F8544">**border**</span> object to the nearest <span style="color:#6E1B1A">**core**</span> object's cluster
 </div>
 
 ---
 
-# DBSCAN (detailed) algorithm
+# Choosing $\epsilon$: k-distance graph
 
-##### NB: pseudocode!
-<div class="grid grid-cols-[5fr_4fr] gap-10">
-<div>
-```python
-function dbscan(X, eps, min_pts):
-    initialize NV = X # not visited objects 
-    for x in NV:
-        remove(NV, x) # mark as visited
-        nbr = neighbours(x, eps) # set of neighbours
-        if nbr.size < min_pts:
-            mark_as_noise(x)
-        else:
-            C = new_cluster() 
-            expand_cluster(x, nbr, C, eps, min_pts, NV)
-            yield C
-```
-</div>
-<div>
-```python
-function expand_cluster(x, nbr, C, eps, min_pts, NV):
-	add(x, C)
-	for x1 in nbr:
-		if x1 in NV: # object not visited
-			remove(NV, x1) # mark as visited
-			nbr1 = neighbours(x1, eps)
-			if nbr1.size >= min_pts:
-				# join sets of neighbours
-				merge(nbr, nbr_1) 
-		if x1 not in any cluster:
-			add(x1, C)
-```
-</div>
-</div>
 <br>
 
-##### Source: [https://shestakoff.github.io/hse_se_ml/2020/l14-cluster/lecture-clust.slides#/4/5](https://shestakoff.github.io/hse_se_ml/2020/l14-cluster/lecture-clust.slides#/4/5)
+#### How to pick a good $\epsilon$?
+
+1. For each point, compute distance to its $k$-th nearest neighbor ($k$ = MinPts)
+2. Sort these distances in **increasing** order and plot them
+3. Look for the **"elbow"** — the $\epsilon$ at which distances start increasing rapidly
+
+<br>
+
+* Points **before** the elbow are in dense regions (clusters)
+* Points **after** the elbow are in sparse regions (noise)
+* The elbow point gives a good estimate for $\epsilon$
 
 ---
 layout: section
@@ -133,13 +120,25 @@ url: https://www.naftaliharris.com/blog/visualizing-dbscan-clustering/
 
 ---
 
-# DBSCAN key features
+# DBSCAN: pros and cons
 
-* Number of clusters is estimated automatically
+<br>
 
-* Robust to outliers
-	* They are recognized as a noise
+<div class="grid grid-cols-[1fr_1fr] gap-10">
+<div>
 
-* Can find clusters with complex shapes
+### Advantages
+* **No need** to specify $K$ — number of clusters is estimated automatically
+* Finds clusters of **arbitrary shape**
+* **Robust to outliers** — labels them as noise
+* Only **two** parameters ($\epsilon$, MinPts)
+</div>
+<div>
 
-* Sensitive to objects density variations
+### Disadvantages
+* Struggles with **varying densities** — one $\epsilon$ doesn't fit all
+* Sensitive to **parameter choices**
+* Not suitable for **high-dimensional** data (distances become similar)
+* Border points can be **non-deterministic**
+</div>
+</div>
